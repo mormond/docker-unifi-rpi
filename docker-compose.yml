@@ -1,9 +1,9 @@
-version: '2'
+version: '3'
 services:
   unifi:
-    image: ryansch/unifi-rpi:latest
+    image: mormond/unifi-rpi:5.9.32
     container_name: unifi
-    restart: always
+    restart: unless-stopped
     network_mode: host
     volumes:
       # Unifi v5.0.7 creates all of these directories (some remain empty)
