@@ -1,5 +1,23 @@
-FROM resin/rpi-raspbian:latest
-MAINTAINER Ryan Schlesinger <ryan@ryanschlesinger.com>
+FROM multiarch/qemu-user-static:aarch64 as qemu
+
+FROM debian:stretch as untar
+
+# Due to a missing slash, the qemu-user-static image has
+# the binary copied to the _file_ /usr/bin
+COPY --from=qemu /usr/bin /tmp/qemu-aarch64-static.tar.gz
+RUN tar -C /usr/bin -zxvf /tmp/qemu-aarch64-static.tar.gz
+
+FROM arm64v8/debian:stretch
+LABEL maintainer="Ryan Schlesinger <ryan@ryanschlesinger.com>"
+
+COPY --from=untar /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64-static
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    ca-certificates \
+    gnupg \
+    dirmngr \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv C0A52C50 && \
     echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" \
@@ -21,14 +39,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install any version from deb download
 # Use dpkg to mark the package for install (expect it to fail to complete the installation)
 # Use apt-get install -f to complete the installation with dependencies
-ENV UNIFI_VERSION {{ unifi_version }}
-ENV UNIFI_DOCKER_VERSION {{ docker_version }}
-RUN apt-get update && apt-get install -y --no-install-recommends wget && \
-      mkdir -p /tmp/build && \
+ENV UNIFI_VERSION 5.10.12-20644d4901
+ENV UNIFI_DOCKER_VERSION 5.10.12
+RUN mkdir -p /tmp/build && \
       cd /tmp/build && \
       wget https://www.ubnt.com/downloads/unifi/${UNIFI_VERSION}/unifi_sysvinit_all.deb && \
-      dpkg --install unifi_sysvinit_all.deb ; \
-      apt-get install -f && \
+      apt-get update && apt-get install -y --no-install-recommends \
+      ./unifi_sysvinit_all.deb \
+      procps && \
       rm -rf /var/lib/apt/lists/* && \
       rm -rf /tmp/build
 

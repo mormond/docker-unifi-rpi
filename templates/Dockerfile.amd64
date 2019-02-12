@@ -13,12 +13,12 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv C0A52C50 && \
     > /etc/apt/sources.list.d/webupd8team-java.list && \
     echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" \
     >> /etc/apt/sources.list.d/webupd8team-java.list && \
-    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886 && \
+    apt-key adv --no-tty --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886 && \
     echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections
 
 # Install java before unifi so a controller update doesn't force
 # a rebuild/redownload of java
-ENV JAVA_INSTALLER_VERSION 8u191-1~webupd8~1
+ENV JAVA_INSTALLER_VERSION 8u201-1~webupd8~1
 RUN apt-get update && apt-get install -y --no-install-recommends \
     oracle-java8-installer=${JAVA_INSTALLER_VERSION} \
     oracle-java8-set-default \
